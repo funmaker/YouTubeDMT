@@ -1,6 +1,6 @@
 {
-	"name": "Boilerplate",
-	"description": "Boilerplate: Node, Webpack, Isomorphic React, Less, Babel, Handlebars",
+	"name": "dmt2",
+	"description": "YouTube DMT",
 	"version": "1.1.0",
 	"main": "./server.js",
 	"author": "Fun Maker",
@@ -32,8 +32,11 @@
 		"react-hot-loader": "^4.2.0",
 		"react-router": "^4.2.0",
 		"react-router-dom": "^4.2.2",
-		"source-map-support": "^0.5.6"
-	},
+		"seedrandom": "^2.4.4",
+		"source-map-support": "^0.5.6",
+		"youtube-dl": "^1.12.2",
+      "qs": "latest"
+    },
 	"devDependencies": {
 		"@babel/core": "^7.0.0-beta.49",
 		"@babel/node": "^7.0.0-beta.49",

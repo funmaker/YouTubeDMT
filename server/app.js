@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import morgan from 'morgan';
 import http from 'http';
-import {router} from "./routes/index";
+import routes from "./routes";
 import {reactMiddleware} from "./helpers/reactHelper";
 import HTTPError from "./helpers/HTTPError";
 
@@ -25,7 +25,7 @@ if(process.env.NODE_ENV === 'development') {
 
 app.use(reactMiddleware);
 
-app.use('/', router);
+app.use('/', routes);
 
 app.use((req, res, next) => {
 	next(new HTTPError(404));

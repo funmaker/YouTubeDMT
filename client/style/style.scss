@@ -1,13 +1,67 @@
-
-.indexPage {
-  border: 3px solid magenta;
-  padding: 2em;
-  display: inline-block;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(0);
-  animation: spin 4s linear infinite;
+html, body, canvas {
+  margin:0;
+  padding: 0;
+  border: 0;
 }
 
-// @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+.IndexPage {
+  canvas{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .controls {
+    position: fixed;
+    bottom: 1em;
+    left: 50%;
+    transform: translate(-50%, 0);
+    background: #24232f;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    width: 400px;
+    max-width: calc(100% - 3em);
+    min-width: 200px;
+
+    form {
+      margin: 0;
+      width: 100%;
+      display: flex;
+
+      input {
+        flex: 1;
+        background: #3f3e41;
+        border: 2px solid #2c2939;
+        border-radius: 2px;
+        color: gray;
+        padding: 0.5em;
+        min-width: 32px;
+      }
+
+      button {
+        margin-left: 0.5em;
+        color: #969696;
+        background: #40404a;
+        border: 2px solid #2c2939;
+        border-radius: 2px;
+        padding: 0.25em 0.5em;
+        font-weight: bold;
+        cursor: pointer;
+
+        &:hover {
+          background: #4b4b57;
+        }
+      }
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 0.5em;
+    }
+  }
+}
+

@@ -1,13 +1,6 @@
-# Webapp Boilerplate
+# YouTube DMT
 
-Basic boilerplate for isomorphic React web apps. Including:
-- Node.js
-- React
-- Webpack
-- Sass
-- Babel
-- Handlebars
-- Universal Hot Reload
+YouTube music visualizer in React.
 
 ## Usage
 

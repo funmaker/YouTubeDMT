@@ -1,11 +1,15 @@
-import os from 'os';
+import api from './api';
 
-export const router = require('express-promise-router')();
+const router = require('express-promise-router')();
+export default router;
+
+router.use("/api", api);
 
 router.get('/', (req, res) => {
 	const initialData = {};
-	
-	initialData.kek = `Welcome to boilerplate on ${os.hostname()}!`;
+  
+  initialData.url = req.query.url;
+  initialData.seed = req.query.seed;
 	
 	res.react(initialData);
 });
