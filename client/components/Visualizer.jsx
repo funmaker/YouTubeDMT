@@ -26,7 +26,6 @@ export default class Visualizer extends React.Component {
   componentDidMount() {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext("2d");
-    this.ctx.imageSmoothingEnabled = this.ctx.mozImageSmoothingEnabled = this.ctx.webkitImageSmoothingEnabled = false;
     
     this.reset();
     this.resizeCanvas();
@@ -43,17 +42,21 @@ export default class Visualizer extends React.Component {
     this.rng = seedrandom(this.props.seed);
     this.hue = this.rng() * 360;
     this.rot = this.rng() * 360;
-    this.pattern = 1;
+    this.direction = 1;
+    this.pattern = 2;
     this.time = 0;
     this.posX = new Array(64).map(() => 0);
     this.posY = new Array(64).map(() => 0);
     this.rnd = this.rng() * 360 + 1;
     this.tracers = [
-      new Tracer(0.15, 100),
-      new Tracer(0.2, 100),
-      new Tracer(0.3, 100),
-      new Tracer(0.25, 100),
+      new Tracer(0.15),
+      new Tracer(0.2),
+      new Tracer(0.3),
+      new Tracer(0.25),
     ];
+    this.lastDraw = performance.now();
+    this.delta = 0;
+    this.smoothDelta = 0;
   }
   
   decay(spread, rotate) {
@@ -75,7 +78,7 @@ export default class Visualizer extends React.Component {
   }
   
   drawLines() {
-    const width = this.maxSize / 100;
+    const width = this.maxSize * this.smoothDelta / 4;
     this.ctx.lineCap = "round";
     this.ctx.lineWidth = width;
     
@@ -88,7 +91,7 @@ export default class Visualizer extends React.Component {
       const b = (this.posY[i] - this.posY[i - 1]) || 1;
       const hypotenuse = Math.sqrt((a * a) + (b * b || a * a)) / 2;
   
-      this.hue = (-this.time / 9) + (i * 2) + (hypotenuse * 2) + this.rnd;
+      this.hue = (-this.time * 10) + (i * 2) + (hypotenuse * 2) + this.rnd;
       this.ctx.strokeStyle = `hsla(${this.hue},  100%, 50%, 1)`;
       this.ctx.lineWidth = Math.max(width - (hypotenuse / 6), 2);
       this.ctx.stroke();
@@ -111,6 +114,7 @@ export default class Visualizer extends React.Component {
       this.minSize = Math.min(this.width, this.height);
       this.maxSize = Math.max(this.width, this.height);
       this.canvas.width = this.canvas.height = this.maxSize;
+      //this.ctx.imageSmoothingEnabled = this.ctx.webkitImageSmoothingEnabled = this.ctx.mozImageSmoothingEnabled = this.ctx.msImageSmoothingEnabled = this.ctx.oImageSmoothingEnabled = false;
       outCan.width = this.width;
       outCan.height = this.height;
   
@@ -124,37 +128,47 @@ export default class Visualizer extends React.Component {
     
     this.resizeCanvas();
     
-    this.time += 1;
-    
     const buf = this.props.getFFT();
     if(buf === null) return;
+    
+    const now = performance.now();
+    const delta = this.delta = (now - this.lastDraw) / 1000;
+    this.smoothDelta += (delta - this.smoothDelta) / 100;
+    this.time += delta;
+    this.lastDraw = now;
     
     const avr = buf.reduce((acc, val, id) => acc + val * id / buf.length) / buf.length / 2;
     const loud = Math.log10(avr);
   
-    this.tracers.forEach(tracer => tracer.update(buf));
+    this.tracers.forEach(tracer => tracer.update(buf, 10 / delta));
     const ts = this.tracers.map(t => t.value);
     
     if(this.tracers[3].var > 0.1 && this.tracers[3].var / 4 > this.rng()) {
-      this.pattern = Math.floor(this.rng() * 5) + 1
+      this.pattern = Math.floor(this.rng() * 4) + 2;
     }
     
-    this.decay(2, 0);
-    this.decay(-32 * ts[0] * this.maxSize / 2000, Math.PI * 2 / this.pattern + ts[1] * 0.3 - 0.13 - 6 * (this.pattern % 2));
+    this.decay(60 * delta, 0);
+    this.decay(-1 * ts[0] * this.maxSize * delta, Math.PI * 2 / this.pattern + ts[1] * 0.3 - 0.13 - 6 * (this.pattern % 2));
     
     if(loud < 0.5) {
-      this.fade((1 - loud / 0.5) * (1 - loud / 0.5));
+      this.fade((1 - loud / 0.5) * (1 - loud / 0.5) / 4);
     } else {
-    
+      const width = this.maxSize / 100;
+      this.ctx.lineCap = "round";
+      this.ctx.lineWidth = width;
+      this.ctx.strokeStyle = `rgba(0, 0, 0, 0.4)`;
+      this.ctx.strokeRect(0, 0, this.maxSize, this.maxSize);
     }
+    
+    this.rot += ts[1] * delta * this.direction;
   
-    this.rot += ts[1] / 10;
-  
-    this.posX.shift();
-    this.posX.push(this.maxSize / 2 + Math.sin(this.rot) * (this.maxSize / 1.9 - ts[2] * this.maxSize / 5));
-    this.posY.shift();
-    this.posY.push(this.maxSize / 2 + Math.cos(this.rot) * (this.maxSize / 1.9 - ts[2] * this.maxSize / 5));
-  
+    if(!this.lastLine || this.time - this.lastLine > 1 / 35) {
+      this.lastLine = this.time;
+      this.posX.shift();
+      this.posX.push(this.maxSize / 2 + Math.sin(this.rot) * (this.maxSize / 1.9 - ts[2] * this.maxSize / 5));
+      this.posY.shift();
+      this.posY.push(this.maxSize / 2 + Math.cos(this.rot) * (this.maxSize / 1.9 - ts[2] * this.maxSize / 5));
+    }
     this.drawLines();
     
     this.output.drawImage(this.canvas, (this.maxSize - this.width) / 2, (this.maxSize - this.height) / 2, this.width, this.height, 0, 0, this.width, this.height);

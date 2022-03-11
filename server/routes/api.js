@@ -8,7 +8,7 @@ router.get('/youtube', (req, res) => {
   
   if(!url) return res.status(400).json({error: "url parameter is required"});
   
-  const audio = youtube(url, ["-f", "140", "--no-playlist"], {});
+  const audio = youtube(url, ["-x", "--no-playlist"], {});
   audio.on('error', err => {
     res.status(500).json({error: err.message});
   });
